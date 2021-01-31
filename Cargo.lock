@@ -1582,15 +1582,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "telops"
-version = "0.1.0"
-dependencies = [
- "rltk",
- "specs",
- "specs-derive",
-]
-
-[[package]]
 name = "thread_local"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1831,6 +1822,15 @@ checksum = "c40dc691fc48003eba817c38da7113c15698142da971298003cac3ef175680b3"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "wedge_of_life"
+version = "0.1.0"
+dependencies = [
+ "rltk",
+ "specs",
+ "specs-derive",
 ]
 
 [[package]]

@@ -1,5 +1,5 @@
 [package]
-name = "telops"
+name = "wedge_of_life"
 version = "0.1.0"
 authors = ["haro"]
 edition = "2018"
