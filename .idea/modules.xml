@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/telops.iml" filepath="$PROJECT_DIR$/.idea/telops.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/wedge_of_life.iml" filepath="$PROJECT_DIR$/.idea/wedge_of_life.iml" />
     </modules>
   </component>
 </project>
