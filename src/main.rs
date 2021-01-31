@@ -10,6 +10,8 @@ pub use components::*;
 mod player;
 pub use player::*;
 
+mod rect;
+pub use rect::Rect;
 
 // --------- WORLD / GAMESTATE STUFF ----------------
 pub struct State {
@@ -63,7 +65,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
 
-    gs.ecs.insert(new_map());
+    gs.ecs.insert(new_map_rooms_and_corridors());
 
     // time to add an entity!
     gs.ecs
@@ -71,7 +73,7 @@ fn main() -> rltk::BError {
         .with(Position {x: 40, y: 25 })   // adds a position component
         .with(Renderable {                           // adds a renderable component
             glyph: rltk::to_cp437('@'),              // cp437 == ascii sheet, check dwarf fortress wiki
-            fg: RGB::named(rltk::RED1),
+            fg: RGB::named(rltk::YELLOW),
             bg: RGB::from_u8(0,106,107),
         })
         .with(Player{})
