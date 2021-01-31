@@ -58,6 +58,10 @@ fn apply_room_to_map(room : &Rect, map: &mut [TileType]) {
     }
 }
 
+//fn apply_horizontal_tunnel(map: &mut [TileType], x1: i32, x2: i32, y: i32 ) {
+
+//}
+
 pub fn new_map_rooms_and_corridors() -> Vec<TileType> {
     let mut map = vec![TileType::Wall; 80*50];
 
