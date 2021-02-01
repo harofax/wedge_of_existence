@@ -51,7 +51,7 @@ pub fn new_map_test() -> Vec<TileType> {
 }
 
 fn apply_room_to_map(room : &Rect, map: &mut [TileType]) {
-    for y in room.y1 + 1 ..= room.y2 {
+    for y in room.y1 +1 ..= room.y2 {
         for x in room.x1 + 1 ..= room.x2 {
             map[xy_idx(x, y)] = TileType::Floor;
         }
@@ -98,6 +98,7 @@ pub fn new_map_rooms_and_corridors(width: usize, height: usize) -> (Vec<Rect>, V
         for other_room in rooms.iter() {
             if new_room.intersect(other_room) { ok = false }
         }
+
         if ok {
             apply_room_to_map(&new_room, &mut map);
 
@@ -110,7 +111,7 @@ pub fn new_map_rooms_and_corridors(width: usize, height: usize) -> (Vec<Rect>, V
                     apply_vertical_tunnel(&mut map, prev_y, new_y, new_x);
                 } else {
                     apply_vertical_tunnel(&mut map, prev_y, new_y, prev_x);
-                    apply_horizontal_tunnel(&mut map, prev_x, new_x, prev_y);
+                    apply_horizontal_tunnel(&mut map, prev_x, new_x, new_y);
                 }
             }
 
