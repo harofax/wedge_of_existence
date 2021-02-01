@@ -1,5 +1,5 @@
 use rltk::{ RGB, Rltk, RandomNumberGenerator};
-use super::{Rect};
+use super::{Rect,MAX_WIDTH, MAX_HEIGHT};
 use std::cmp::{max, min};
 
 
@@ -18,7 +18,7 @@ pub enum TileType {
 /// gets a tile's index from its x and y position,
 /// assuming the map-width is 80
 pub fn xy_idx(x: i32, y: i32) -> usize {
-    (y as usize * 80) + x as usize
+    (y as usize * MAX_WIDTH) + x as usize
 }
 
 /// Makes a map with a boundary and 400 randomly placed wall-tiles.
@@ -49,7 +49,6 @@ pub fn new_map_test() -> Vec<TileType> {
     }
     map
 }
-
 fn apply_room_to_map(room : &Rect, map: &mut [TileType]) {
     for y in room.y1 + 1 ..= room.y2 {
         for x in room.x1 + 1 ..= room.x2 {
@@ -58,18 +57,65 @@ fn apply_room_to_map(room : &Rect, map: &mut [TileType]) {
     }
 }
 
-//fn apply_horizontal_tunnel(map: &mut [TileType], x1: i32, x2: i32, y: i32 ) {
+fn apply_horizontal_tunnel(map: &mut [TileType], x1: i32, x2: i32, y: i32 ) {
+    for x in min(x1, x2) ..= max(x1, x2) {
+        let idx = xy_idx(x, y);
+        if idx > 0 && idx < MAX_WIDTH*MAX_HEIGHT {
+            map[idx as usize] = TileType::Floor;
+        }
+    }
+}
 
-//}
+fn apply_vertical_tunnel(map: &mut [TileType], y1: i32, y2: i32, x: i32 ) {
+    for y in min(y1, y2) ..= max(y1, y2) {
+        let idx = xy_idx(x, y);
+        if idx > 0 && idx < MAX_WIDTH*MAX_HEIGHT {
+            map[idx as usize] = TileType::Floor;
+        }
+    }
+}
 
-pub fn new_map_rooms_and_corridors() -> Vec<TileType> {
-    let mut map = vec![TileType::Wall; 80*50];
+pub fn new_map_rooms_and_corridors(width: usize, height: usize) -> Vec<TileType> {
+    let mut map = vec![TileType::Wall; width*height];
 
-    let room1 = Rect::new(20, 15, 10, 15);
-    let room2 = Rect::new(35, 15, 10, 15);
+    let mut rooms : Vec<Rect> = Vec::new();
+    const MAX_ROOMS : i32 = 30;
+    const MIN_SIZE : i32 = 6;
+    const MAX_SIZE : i32 = 10;
 
-    apply_room_to_map(&room1, &mut map);
-    apply_room_to_map(&room2, &mut map);
+    let mut rng = RandomNumberGenerator::new();
+
+    for _ in 0..MAX_ROOMS {
+        let w = rng.range(MIN_SIZE, MAX_SIZE);
+        let h = rng.range(MIN_SIZE, MAX_SIZE);
+        let x = rng.roll_dice(1, MAX_WIDTH as i32- w - 1)  - 1;
+        let y = rng.roll_dice(1, MAX_HEIGHT as i32 - h - 1) - 1;
+
+        let new_room = Rect::new(x, y, w, h);
+        let mut ok = true;
+
+        for other_room in rooms.iter() {
+            if new_room.intersect(other_room) { ok = false }
+        }
+        if ok {
+            apply_room_to_map(&new_room, &mut map);
+
+            if !rooms.is_empty() {
+                let (new_x, new_y) = new_room.center();
+                let (prev_x, prev_y) = rooms[rooms.len()-1].center();
+
+                if rng.range(0, 2) == 1 {
+                    apply_horizontal_tunnel(&mut map, prev_x, new_x, prev_y);
+                    apply_vertical_tunnel(&mut map, prev_y, new_y, new_x);
+                } else {
+                    apply_vertical_tunnel(&mut map, prev_x, new_x, prev_y);
+                    apply_horizontal_tunnel(&mut map, prev_x, new_x, prev_y);
+                }
+            }
+
+            rooms.push(new_room);
+        }
+    }
 
     map
 }
@@ -93,7 +139,7 @@ pub fn draw_map(map: &[TileType], ctx: &mut Rltk) {
 
         // Move coordinates
         x += 1;
-        if x > 79 {
+        if x > MAX_WIDTH - 1 {
             x = 0;
             y += 1;
         }

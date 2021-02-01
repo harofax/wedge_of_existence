@@ -1,4 +1,4 @@
-use rltk::{GameState, Rltk, RGB};
+use rltk::{GameState, Rltk, RGB, BTermBuilder};
 use specs::prelude::*;
 
 mod map;
@@ -11,6 +11,9 @@ mod player;
 pub use player::*;
 
 mod rect;
+mod configuration;
+pub use configuration::*;
+
 pub use rect::Rect;
 
 // --------- WORLD / GAMESTATE STUFF ----------------
@@ -51,7 +54,12 @@ impl GameState for State {
 fn main() -> rltk::BError {
     use rltk::RltkBuilder;
 
-    let context = RltkBuilder::simple80x50()
+    let window = match RltkBuilder::simple(MAX_WIDTH, MAX_HEIGHT) {
+        Ok(x) => {x},
+        Err(e) => panic!(e)
+    };
+
+    let context = window
         .with_title("Wedge of Life")
         .build()?;
 
@@ -65,7 +73,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
 
-    gs.ecs.insert(new_map_rooms_and_corridors());
+    gs.ecs.insert(new_map_rooms_and_corridors(MAX_WIDTH, MAX_HEIGHT));
 
     // time to add an entity!
     gs.ecs
