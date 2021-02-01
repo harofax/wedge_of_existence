@@ -49,6 +49,7 @@ pub fn new_map_test() -> Vec<TileType> {
     }
     map
 }
+
 fn apply_room_to_map(room : &Rect, map: &mut [TileType]) {
     for y in room.y1 + 1 ..= room.y2 {
         for x in room.x1 + 1 ..= room.x2 {
@@ -75,7 +76,7 @@ fn apply_vertical_tunnel(map: &mut [TileType], y1: i32, y2: i32, x: i32 ) {
     }
 }
 
-pub fn new_map_rooms_and_corridors(width: usize, height: usize) -> Vec<TileType> {
+pub fn new_map_rooms_and_corridors(width: usize, height: usize) -> (Vec<Rect>, Vec<TileType>) {
     let mut map = vec![TileType::Wall; width*height];
 
     let mut rooms : Vec<Rect> = Vec::new();
@@ -108,7 +109,7 @@ pub fn new_map_rooms_and_corridors(width: usize, height: usize) -> Vec<TileType>
                     apply_horizontal_tunnel(&mut map, prev_x, new_x, prev_y);
                     apply_vertical_tunnel(&mut map, prev_y, new_y, new_x);
                 } else {
-                    apply_vertical_tunnel(&mut map, prev_x, new_x, prev_y);
+                    apply_vertical_tunnel(&mut map, prev_y, new_y, prev_x);
                     apply_horizontal_tunnel(&mut map, prev_x, new_x, prev_y);
                 }
             }
@@ -117,7 +118,7 @@ pub fn new_map_rooms_and_corridors(width: usize, height: usize) -> Vec<TileType>
         }
     }
 
-    map
+    (rooms, map)
 }
 
 

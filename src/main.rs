@@ -73,12 +73,15 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
 
-    gs.ecs.insert(new_map_rooms_and_corridors(MAX_WIDTH, MAX_HEIGHT));
+    let (rooms, map) = new_map_rooms_and_corridors(MAX_HEIGHT, MAX_WIDTH);
+
+    gs.ecs.insert(map);
+    let (player_x, player_y) = rooms[0].center();
 
     // time to add an entity!
     gs.ecs
         .create_entity()                     // creates empty entity
-        .with(Position {x: 40, y: 25 })   // adds a position component
+        .with(Position {x: player_x, y: player_y })   // adds a position component
         .with(Renderable {                           // adds a renderable component
             glyph: rltk::to_cp437('@'),              // cp437 == ascii sheet, check dwarf fortress wiki
             fg: RGB::named(rltk::YELLOW),
