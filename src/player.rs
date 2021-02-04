@@ -1,8 +1,8 @@
 use rltk::{VirtualKeyCode, Rltk};
 use specs::prelude::*;
-use super::{Position, Player, TileType, State, Map, MAX_WIDTH, MAX_HEIGHT};
+use super::{Position, Player, TileType, Viewshed, State, Map};
 use std::cmp::{min, max};
-use crate::Viewshed;
+
 
 pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     // Fetch all entities that have a player and position component
@@ -17,8 +17,9 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
         let destination_idx = map.xy_idx(pos.x + delta_x, pos.y + delta_y);
 
         if map.tiles[destination_idx] != TileType::Wall {
-            pos.x = min((MAX_WIDTH - 1) as i32, max(0, pos.x + delta_x));
-            pos.y = min((MAX_HEIGHT - 1) as i32, max(0, pos.y + delta_y));
+            pos.x = min((map.width - 1) as i32, max(0, pos.x + delta_x));
+            pos.y = min((map.height - 1) as i32, max(0, pos.y + delta_y));
+
 
             viewshed.dirty = true;
         }
