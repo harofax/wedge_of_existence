@@ -99,8 +99,8 @@ impl Map {
             rooms : Vec::new(),
             width : width as i32,
             height : height as i32,
-            revealed_tiles : vec![true; width*height],
-            visible_tiles : vec![true; width*height]
+            revealed_tiles : vec![false; width*height],
+            visible_tiles : vec![false; width*height]
         };
 
         const MAX_ROOMS: i32 = 30;
