@@ -59,7 +59,7 @@ fn main() -> rltk::BError {
     use rltk::RltkBuilder;
 
     let context = RltkBuilder::simple80x50()
-        .with_title("Wedge of Life")
+        .with_title("Wedge of Existence")
         .build()?;
 
     // create a game stat + add a new "world" to it (ecs lingo)
