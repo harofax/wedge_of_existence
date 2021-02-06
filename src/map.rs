@@ -8,7 +8,10 @@ use std::ops::Mul;
 // ---------- TILES ------------------------
 #[derive(PartialEq, Copy, Clone)]
 pub enum TileType {
-    Wall, Floor, Door
+    Wall,
+    Grass,
+    Door,
+    Floorboard
 }
 
 // ------------- MAP ---------------------
@@ -24,7 +27,6 @@ pub struct Map {
 
 impl Map {
     /// gets a tile's index from its x and y position,
-    /// assuming the map-width is 80
     pub fn xy_idx(&self, x: i32, y: i32) -> usize {
         (y as usize * self.width as usize) + x as usize
     }
@@ -33,7 +35,7 @@ impl Map {
         for y in room.y1 +1 ..= room.y2 {
             for x in room.x1 + 1 ..= room.x2 {
                 let idx = self.xy_idx(x, y);
-                self.tiles[idx] = TileType::Floor;
+                self.tiles[idx] = TileType::Grass;
             }
         }
     }
@@ -47,25 +49,25 @@ impl Map {
         }
     }
 
-    fn make_door(&mut self, room: &Rect, dir: i8) {
+    fn make_door(&mut self, room: &Rect, dir: i8, rng: &mut RandomNumberGenerator) {
         let mut door_y = 0;
         let mut door_x = 0;
         match dir {
             1 => { // top
                 door_y = room.y1;
-                door_x = (room.x1 + room.x2)/2;
+                door_x = rng.range(room.x1, room.x2);//(room.x1 + room.x2)/2;
             }
             2 => { // right
                 door_x = room.x2;
-                door_y = (room.y1 + room.y2)/2;
+                door_y = rng.range(room.y1, room.y2);//(room.y1 + room.y2)/2;
             }
             3 => { // bottom
                 door_y = room.y2;
-                door_x = (room.x1 + room.x2)/2;
+                door_x = rng.range(room.x1, room.x2); //(room.x1 + room.x2)/2;
             }
             4 => { // left
                 door_x = room.x1;
-                door_y = (room.y1 + room.y2)/2;
+                door_y = rng.range(room.y1, room.y2);//(room.y1 + room.y2)/2;
             }
             _ => {}
         }
@@ -79,7 +81,7 @@ impl Map {
         for x in min(x1,x2) ..= max(x1,x2) {
             let idx = self.xy_idx(x, y);
             if idx > 0 && idx < self.width as usize * self.height as usize {
-                self.tiles[idx as usize] = TileType::Floor;
+                self.tiles[idx as usize] = TileType::Grass;
             }
         }
     }
@@ -88,14 +90,14 @@ impl Map {
         for y in min(y1, y2) ..= max(y1, y2) {
             let idx = self.xy_idx(x, y);
             if idx > 0 && idx < self.width as usize * self.height as usize {
-                self.tiles[idx as usize] = TileType::Floor;
+                self.tiles[idx as usize] = TileType::Grass;
             }
         }
     }
 
     pub fn new_town_houses(width: usize, height: usize) -> Map {
         let mut map = Map{
-            tiles : vec![TileType::Floor; width*height],
+            tiles : vec![TileType::Grass; width*height],
             rooms : Vec::new(),
             width : width as i32,
             height : height as i32,
@@ -103,9 +105,11 @@ impl Map {
             visible_tiles : vec![false; width*height]
         };
 
-        const MAX_ROOMS: i32 = 30;
+        const MAX_ROOMS: i32 = 50;
         const MIN_SIZE: i32 = 6;
-        const MAX_SIZE: i32 = 10;
+        const MAX_SIZE: i32 = 13;
+        const RNG_DOORS_PER_ROOM: i32 = 3;
+
 
         let mut rng = RandomNumberGenerator::new();
 
@@ -117,19 +121,20 @@ impl Map {
 
             let new_room = Rect::new(x, y, w, h);
             let cavity = Rect::new(x + 1, y + 1, w - 2, h - 2);
-            let mut ok = true;
 
-            for other_room in map.rooms.iter() {
-                if new_room.intersect(other_room) { ok = false }
+            map.apply_tiles_to_map(&new_room, TileType::Wall);
+            map.apply_tiles_to_map(&cavity, TileType::Floorboard);
+
+            for _ in 0..RNG_DOORS_PER_ROOM {
+                map.make_door(&new_room, rng.range(1, 4), &mut rng);
             }
+            map.make_door(&new_room, 1, &mut rng);
+            map.make_door(&new_room, 2, &mut rng);
+            map.make_door(&new_room, 3, &mut rng);
+            map.make_door(&new_room, 4, &mut rng);
 
-            if ok {
 
-                map.apply_tiles_to_map(&new_room, TileType::Wall);
-                map.apply_tiles_to_map(&cavity, TileType::Floor);
-                map.make_door(&new_room, rng.roll_dice(1, 4) as i8);
-                map.rooms.push(new_room);
-            }
+            map.rooms.push(new_room);
         }
 
         map
@@ -147,8 +152,8 @@ impl Map {
         };
 
         const MAX_ROOMS: i32 = 30;
-        const MIN_SIZE: i32 = 6;
-        const MAX_SIZE: i32 = 10;
+        const MIN_SIZE: i32 = 8;
+        const MAX_SIZE: i32 = 14;
 
         let mut rng = RandomNumberGenerator::new();
 
@@ -218,20 +223,25 @@ pub fn draw_map(ecs: &World, ctx : &mut Rltk) {
             let mut fg;
             let mut bg;
             match tile {
-                TileType::Floor => {
+                TileType::Grass => {
                     fg = RGB::from_u8(2, 219, 158);
                     bg = RGB::from_u8(2, 168, 129);
                     glyph = rltk::to_cp437('"');
                 }
                 TileType::Wall => {
-                    fg = RGB::from_u8(120,135,211);
-                    bg = RGB::from_u8(62,60,137);
-                    glyph = rltk::to_cp437('µ');
+                    fg = RGB::from_u8(79, 65, 240);
+                    bg = RGB::from_u8(51, 133, 181);
+                    glyph = rltk::to_cp437('┬');
                 }
                 TileType::Door => {
-                    fg = RGB::from_u8(255, 100, 100);
-                    bg = RGB::from_u8(100, 50, 255);
-                    glyph = rltk::to_cp437('O');
+                    fg = RGB::from_u8(50, 133, 240);
+                    bg = RGB::from_u8(150, 100, 72);
+                    glyph = rltk::to_cp437('▬');
+                }
+                TileType::Floorboard => {
+                    fg = RGB::from_u8(102, 73, 53);
+                    bg = RGB::from_u8(150, 100, 72);
+                    glyph = rltk::to_cp437('─');
                 }
             }
             if !map.visible_tiles[idx] {

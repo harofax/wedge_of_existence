@@ -89,7 +89,7 @@ fn main() -> rltk::BError {
             bg: RGB::from_u8(0,106,107),
         })
         .with(Player{})
-        .with(Viewshed { visible_tiles: Vec::new(), range: 8, dirty: true})
+        .with(Viewshed { visible_tiles: Vec::new(), range: 20, dirty: true})
         .build();                                       // assembles the actual entity
 
     rltk::main_loop(context, gs)
